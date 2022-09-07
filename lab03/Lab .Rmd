@@ -9,6 +9,25 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+## Step 1 Read in the data
+First download and then read in with data.table:fread()
+```{r}
+if (!file.exists("met_all.gz")) {
+download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz", "met_all.gz", method="libcurl", timeout = 60) 
+}
+met <- data.table::fread("met_all.gz") 
+```
+
+##Step 2 Check the dimensions, headers, footers. How many columns, rows are there?
+```{r}
+dim(met)
+## [1] 2377343      30
+head(met)
+tail(met)
+```
+
+
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
