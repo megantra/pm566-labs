@@ -27,6 +27,38 @@ head(met)
 tail(met)
 ```
 
+## Step 3 Take a look at the variables.
+```{r}
+str(met)
+```
+
+## Step 4 Take a closer look at the key variables.
+```{r}
+table(met$year)
+table(met$day)
+table(met$hour)
+```
+
+
+```{r}
+summary(met$temp)
+summary(met$elev)
+summary(met$wind.sp)
+```
+
+```{r}
+met[met$elev==9999.0] <- NA
+summary(met$elev)
+```
+`r max(met$elev, na.rm=TRUE)` meters
+
+```{r}
+met <- met[temp>-40]
+met2 <- met[order(temp)]
+head(met2)
+```
+Step #5 Check the data against an external data source.
+
 
 ## R Markdown
 
