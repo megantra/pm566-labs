@@ -1,8 +1,11 @@
 ---
 title: "Lab 03"
 author: "Megan Tran"
-output: html_document
-date: "`r Sys.Date()`"
+date: '`September 7, 2022'
+output:
+  html_document:
+    df_print: paged
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -57,25 +60,92 @@ met <- met[temp>-40]
 met2 <- met[order(temp)]
 head(met2)
 ```
-Step #5 Check the data against an external data source.
+##Step #5 Check the data against an external data source.
 
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+met <- met[temp>-15]
+met2 <- met[order(temp)]
+head(met2)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+##Step #6 Calculate summary statistics
+```{r}
+elev <- met[elev==max(elev)]
+summary(elev)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+cor(elev$temp, elev$wind.sp, use="complete")
+```
+
+```{r}
+cor(elev$temp, elev$hour, use="complete")
+```
+```{r}
+cor(elev$wind.sp, elev$day, use="complete")
+```
+```{r}
+cor(elev$wind.sp, elev$hour, use="complete")
+```
+
+```{r}
+cor(elev$temp, elev$day, use="complete")
+```
+
+## Step 7. Exploratory Graphs
+
+Look at key variables 
+
+```{r}
+hist(met$elev, breaks=100)
+```
+```{r}
+hist(met$temp)
+```
+
+```{r}
+hist(met$wind.sp) 
+```
+
+```{r}
+if (!require(leaflet)) {
+  install.packages("leaflet")
+  library(leaflet)
+}
+```
+
+
+
+```{r}
+#library(leaflet)
+elev <- met[elev==max(elev)]
+```
+
+
+```{r}
+leaflet(elev) %>%
+  addProviderTiles('OpenStreetMap') %>% 
+  addCircles(lat=~lat,lng=~lon, opacity=1, fillOpacity=1, radius=100)
+```
+
+```{r}
+library(lubridate)
+elev$date <- with(elev, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(elev$date)
+```
+```{r}
+elev <- elev[order(date)]
+head(elev)
+```
+```{r}
+plot(elev$date, elev$temp, type='l')
+```
+
+##In August, the temperature rose and fell every 10 days. 
+
+```{r}
+plot(elev$date, elev$wind.sp, type='l')
+```
+
+## The wind trends rose and fell every 5 days towards the end of August. 
+
