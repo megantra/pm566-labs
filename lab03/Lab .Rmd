@@ -2,10 +2,8 @@
 title: "Lab 03"
 author: "Megan Tran"
 date: '`September 7, 2022'
-output:
-  html_document:
-    df_print: paged
-always_allow_html: yes
+output: github_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
