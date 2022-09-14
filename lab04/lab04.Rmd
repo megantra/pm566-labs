@@ -49,7 +49,7 @@ met <- met[week(ymd)==31]
 Compute the mean by station of the variables temp, rh, wind.sp, vis.dist, dew.point, lat, lon, and elev.
 
 ```{r}
-met [, .(
+met_avg <- met [, .(
   temp = max(temp,na.rm=T),
   rh = max(rh,na.rm=T),
   wind.sp = max(wind.sp,na.rm=T),
@@ -63,7 +63,7 @@ met [, .(
 Great! No more 9999s in our dataset.
 
 ```{r check-avg}
-met [, .(
+met_avg <- met [, .(
   temp = mean(temp,na.rm=T),
   rh = mean(rh,na.rm=T),
   wind.sp = mean(wind.sp,na.rm=T),
@@ -76,5 +76,47 @@ met [, .(
 ```
 
 Create a region variable for NW, SW, NE, SE based on lon = -98.00 and lat = 39.71 degrees
-Create a categorical variable for elevation as in the lecture slides
 
+```{r}
+met_avg <- met[, region := fifelse(lon >= -98 & lat > 39.71, "NE", 
+                fifelse(lon < -98 & lat > 39.71, "NW",
+                fifelse(lon < -98 & lat <= 39.71, "SW","SE") ))]
+table(met_avg$region)
+```
+
+Create a categorical variable for elevation as in the lecture slides
+```{r}
+met_avg [, elev_cat := fifelse(elev > 252, "high", "low")]
+```
+
+## step 3 make violin plots of dew point temp by region
+```{r}
+met_avg[!is.na(region)] %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = 1, y = dew.point, fill=region)) + 
+  facet_wrap(~ region, nrow = 1)
+```
+The highest dew point temperatures are reported in the southeast
+
+```{r}
+met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = 1, y = wind.sp, fill=region)) + 
+  facet_wrap(~ region, nrow = 1)
+```
+comment on results
+
+
+## 4. Use geom_jitter with stat_smooth to examine the association between dew point temperature and wind speed by region
+Colour points by region
+Make sure to deal with NA category
+Fit a linear regression line by region
+Describe what you observe in the graph
+
+```{r scatterplot-dewpoint-wind.sp}
+met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
+  ggplot(mapping = aes(x=wind.sp, y = dew.point)) + 
+  geom_point(mapping = aes(color = region)) + 
+geom_smooth(mapping = aes(linetype = region), )
+```
+comment on results 

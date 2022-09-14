@@ -103,7 +103,7 @@ Compute the mean by station of the variables temp, rh, wind.sp,
 vis.dist, dew.point, lat, lon, and elev.
 
 ``` r
-met [, .(
+met_avg <- met [, .(
   temp = max(temp,na.rm=T),
   rh = max(rh,na.rm=T),
   wind.sp = max(wind.sp,na.rm=T),
@@ -115,13 +115,10 @@ met [, .(
 )]
 ```
 
-    ##    temp  rh wind.sp vis.dist dew.point    lat     lon elev
-    ## 1:   47 100    20.6   144841        29 48.941 -68.313 4113
-
 Great! No more 9999s in our dataset.
 
 ``` r
-met [, .(
+met_avg <- met [, .(
   temp = mean(temp,na.rm=T),
   rh = mean(rh,na.rm=T),
   wind.sp = mean(wind.sp,na.rm=T),
@@ -133,31 +130,67 @@ met [, .(
 ), by = 'USAFID'] 
 ```
 
-    ##       USAFID     temp       rh  wind.sp vis.dist dew.point      lat       lon
-    ##    1: 690150 33.79167 14.93604 3.932292 16042.72  2.641667 34.29992 -116.1659
-    ##    2: 720110 30.95139 51.18987 1.785069 15936.55 18.763889 30.78400  -98.6620
-    ##    3: 720113 23.65403 57.09799 1.476344 16080.02 13.861828 42.54300  -83.1780
-    ##    4: 720120 25.59172 88.10970 1.580473 15402.63 23.378698 32.21746  -80.6998
-    ##    5: 720137 22.39965 65.79964 0.937500 16059.47 14.828125 41.42500  -88.4190
-    ##   ---                                                                        
-    ## 1571: 726777 24.16040 61.50894 4.110891 15885.87 15.095050 46.35760 -104.2504
-    ## 1572: 726797 20.29831 58.04065 3.594915 16024.82 10.366102 45.78772 -111.1598
-    ## 1573: 726798 22.05372 46.65441 4.643802 15268.41  8.837168 45.69800 -110.4400
-    ## 1574: 726810 27.22389 33.18024 2.459459 16079.83  8.303540 43.56700 -116.2390
-    ## 1575: 726813 26.62500 41.57813 2.636458 16059.48 11.586458 43.64983 -116.6331
-    ##            elev
-    ##    1:  694.5208
-    ##    2:  336.0000
-    ##    3:  222.0000
-    ##    4:    6.0000
-    ##    5:  178.0000
-    ##   ---          
-    ## 1571:  906.0000
-    ## 1572: 1356.1780
-    ## 1573: 1408.0000
-    ## 1574:  873.8584
-    ## 1575:  741.0000
-
 Create a region variable for NW, SW, NE, SE based on lon = -98.00 and
-lat = 39.71 degrees Create a categorical variable for elevation as in
-the lecture slides
+lat = 39.71 degrees
+
+``` r
+met_avg <- met[, region := fifelse(lon >= -98 & lat > 39.71, "NE", 
+                fifelse(lon < -98 & lat > 39.71, "NW",
+                fifelse(lon < -98 & lat <= 39.71, "SW","SE") ))]
+table(met_avg$region)
+```
+
+    ## 
+    ##     NE     NW     SE     SW 
+    ##  97578  26408 123882  49391
+
+Create a categorical variable for elevation as in the lecture slides
+
+``` r
+met_avg [, elev_cat := fifelse(elev > 252, "high", "low")]
+```
+
+## step 3 make violin plots of dew point temp by region
+
+``` r
+met_avg[!is.na(region)] %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = 1, y = dew.point, fill=region)) + 
+  facet_wrap(~ region, nrow = 1)
+```
+
+    ## Warning: Removed 549 rows containing missing values (geom_point).
+
+![](lab04_files/figure-gfm/unnamed-chunk-5-1.png)<!-- --> The highest
+dew point temperatures are reported in the southeast
+
+``` r
+met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
+  ggplot() + 
+  geom_point(mapping = aes(x = 1, y = wind.sp, fill=region)) + 
+  facet_wrap(~ region, nrow = 1)
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> comment on
+results
+
+## 4. Use geom_jitter with stat_smooth to examine the association between dew point temperature and wind speed by region
+
+Colour points by region Make sure to deal with NA category Fit a linear
+regression line by region Describe what you observe in the graph
+
+``` r
+met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
+  ggplot(mapping = aes(x=wind.sp, y = dew.point)) + 
+  geom_point(mapping = aes(color = region)) + 
+geom_smooth(mapping = aes(linetype = region), )
+```
+
+    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+
+    ## Warning: Removed 416 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 416 rows containing missing values (geom_point).
+
+![](lab04_files/figure-gfm/scatterplot-dewpoint-wind.sp-1.png)<!-- -->
+comment on results
