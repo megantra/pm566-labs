@@ -183,8 +183,11 @@ regression line by region Describe what you observe in the graph
 met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
   ggplot(mapping = aes(x=wind.sp, y = dew.point)) + 
   geom_point(mapping = aes(color = region)) + 
-geom_smooth(mapping = aes(linetype = region), )
+geom_smooth(mmethod = lm, mapping = aes(linetype = region)) +
+facet_wrap (~ region, nrow=2)
 ```
+
+    ## Warning: Ignoring unknown parameters: mmethod
 
     ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
 
