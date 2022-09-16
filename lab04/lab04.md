@@ -134,15 +134,15 @@ Create a region variable for NW, SW, NE, SE based on lon = -98.00 and
 lat = 39.71 degrees
 
 ``` r
-met_avg <- met[, region := fifelse(lon >= -98 & lat > 39.71, "NE", 
+met_avg <- met_avg[, region := fifelse(lon >= -98 & lat > 39.71, "NE", 
                 fifelse(lon < -98 & lat > 39.71, "NW",
                 fifelse(lon < -98 & lat <= 39.71, "SW","SE") ))]
 table(met_avg$region)
 ```
 
     ## 
-    ##     NE     NW     SE     SW 
-    ##  97578  26408 123882  49391
+    ##  NE  NW  SE  SW 
+    ## 484 146 649 296
 
 Create a categorical variable for elevation as in the lecture slides
 
@@ -155,11 +155,9 @@ met_avg [, elev_cat := fifelse(elev > 252, "high", "low")]
 ``` r
 met_avg[!is.na(region)] %>% 
   ggplot() + 
-  geom_point(mapping = aes(x = 1, y = dew.point, fill=region)) + 
+  geom_violin(mapping = aes(x = 1, y = dew.point, fill=region)) + 
   facet_wrap(~ region, nrow = 1)
 ```
-
-    ## Warning: Removed 549 rows containing missing values (geom_point).
 
 ![](lab04_files/figure-gfm/unnamed-chunk-5-1.png)<!-- --> The highest
 dew point temperatures are reported in the southeast
@@ -167,12 +165,12 @@ dew point temperatures are reported in the southeast
 ``` r
 met_avg[!is.na(region) & !is.na(wind.sp)] %>% 
   ggplot() + 
-  geom_point(mapping = aes(x = 1, y = wind.sp, fill=region)) + 
+  geom_violin(mapping = aes(x = 1, y = wind.sp, fill=region)) + 
   facet_wrap(~ region, nrow = 1)
 ```
 
-![](lab04_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> comment on
-results
+![](lab04_files/figure-gfm/unnamed-chunk-6-1.png)<!-- --> The highest
+wind speed is in the northeast.
 
 ## 4. Use geom_jitter with stat_smooth to examine the association between dew point temperature and wind speed by region
 
@@ -189,11 +187,155 @@ facet_wrap (~ region, nrow=2)
 
     ## Warning: Ignoring unknown parameters: mmethod
 
-    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
-
-    ## Warning: Removed 416 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 416 rows containing missing values (geom_point).
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
 ![](lab04_files/figure-gfm/scatterplot-dewpoint-wind.sp-1.png)<!-- -->
-comment on results
+In all the regions, wind speed and dew point have little correlation
+until wind speed reaches 2.5, then the variables are negatively
+correlated.
+
+\##5 Use geom_bar to create barplots of the weather stations by
+elevation category coloured by region
+
+``` r
+met_avg %>%
+filter(!(elev_cat %in% NA)) %>% 
+  ggplot() + 
+  geom_bar(mapping = aes(x = elev_cat, fill=region), position = "dodge") + scale_fill_brewer(palette = "Blues") +
+  labs(title = "Elevation of Weather Stations") + 
+  labs(x = expression("Elevation" * (degrees)), y = "Number of Weather Stations")
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-7-1.png)<!-- --> The number of
+weather stations with high elevation is about the same for all regions.
+But the northeast does have the most. For low elevation weather
+stations, the Southeast region has the most by far and there or no low
+elevation stations in the northeast.
+
+\##6 Use stat_summary to examine mean dew point and wind speed by region
+with standard deviation error bars
+
+``` r
+met_avg[!is.na(dew.point)] %>%
+  ggplot(mapping = aes(x=region, y=dew.point)) + 
+    stat_summary(fun.data = mean_sdl, 
+  geom = "errorbar")
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-8-1.png)<!-- --> The mean dew
+point temperature is highest for the SE region. The standard deviations
+for NW and SW regions are similarly large. The standard deviations for
+the NE and SE regions are similarly small.
+
+``` r
+met_avg[!is.na(wind.sp)] %>%
+  ggplot(mapping = aes(x=region, y=wind.sp)) + 
+    stat_summary(fun.data = mean_sdl, 
+  geom = "errorbar")
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-9-1.png)<!-- --> Wind speed is
+slightly highest in the SW region. All of the regions have about the
+same standard deviations.
+
+\##7. Make a map of weather stations and show trend in relative humidity
+of top 10
+
+``` r
+library(leaflet)
+met_avg2 <- met[,.(rh = mean(rh,na.rm=TRUE), lat = mean(lat), lon = mean(lon)),  by=c("USAFID")]
+met_avg2 <- met_avg2[!is.na(rh)]
+
+
+rh.pal <- colorNumeric(c('darkgreen','goldenrod','brown'), domain=met_avg2$rh)
+rh.pal
+```
+
+    ## function (x) 
+    ## {
+    ##     if (length(x) == 0 || all(is.na(x))) {
+    ##         return(pf(x))
+    ##     }
+    ##     if (is.null(rng)) 
+    ##         rng <- range(x, na.rm = TRUE)
+    ##     rescaled <- scales::rescale(x, from = rng)
+    ##     if (any(rescaled < 0 | rescaled > 1, na.rm = TRUE)) 
+    ##         warning("Some values were outside the color scale and will be treated as NA")
+    ##     if (reverse) {
+    ##         rescaled <- 1 - rescaled
+    ##     }
+    ##     pf(rescaled)
+    ## }
+    ## <bytecode: 0x7fa483fd5190>
+    ## <environment: 0x7fa483fd87d8>
+    ## attr(,"colorType")
+    ## [1] "numeric"
+    ## attr(,"colorArgs")
+    ## attr(,"colorArgs")$na.color
+    ## [1] "#808080"
+
+Use addMarkers to include the top 10 places in relative h (hint: this
+will be useful rank(-rh) \<= 10)
+
+``` r
+top10rh <- met_avg[order(-rh) <= 10 ]
+```
+
+``` r
+#met_avg[order(-rh)][1:10]
+```
+
+``` r
+rhmap <- leaflet(top10rh) %>% 
+  # The looks of the Map
+  addProviderTiles('CartoDB.Positron') %>% 
+  # Some circles
+  addCircles(
+    lat = ~lat, lng=~lon,
+                                                  # HERE IS OUR PAL!
+    label = ~paste0(rh), color = ~ rh.pal(rh),
+    opacity = 1, fillOpacity = 1, radius = 500
+    ) %>%
+  # And a pretty legend
+  addLegend('bottomleft', pal=rh.pal, values=met_avg$rh,
+          title='Relative Humidity', opacity=1)
+rhmap
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+rhmap <- leaflet(met_avg) %>% 
+  # The looks of the Map
+  addProviderTiles('CartoDB.Positron') %>% 
+  # Some circles
+  addCircles(
+    lat = ~lat, lng=~lon,
+                                                  # HERE IS OUR PAL!
+    label = ~paste0(rh), color = ~ rh.pal(rh),
+    opacity = 1, fillOpacity = 1, radius = 500
+    ) %>%
+  # And a pretty legend
+  addLegend('bottomleft', pal=rh.pal, values=met_avg$rh,
+          title='Relative Humidity', opacity=1)
+rhmap
+```
+
+![](lab04_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+The spatial trend in relative humidity across the US is that the eastern
+side of the country as well as the West Coast are most humid. The west
+side of the country is dry.
+
+## 8. Use a ggplot extension
+
+``` r
+library(ggforce)
+#> Loading required package: ggplot2
+ggplot(met_avg, aes(rh, wind.sp, colour = region)) +
+  geom_point() 
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](lab04_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->

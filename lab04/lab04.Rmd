@@ -122,7 +122,15 @@ facet_wrap (~ region, nrow=2)
 In all the regions, wind speed and dew point have little correlation until wind speed reaches 2.5, then the variables are negatively correlated.
 
 ##5  Use geom_bar to create barplots of the weather stations by elevation category coloured by region
-
+```{r}
+met_avg %>%
+filter(!(elev_cat %in% NA)) %>% 
+  ggplot() + 
+  geom_bar(mapping = aes(x = elev_cat, fill=region), position = "dodge") + scale_fill_brewer(palette = "Blues") +
+  labs(title = "Elevation of Weather Stations") + 
+  labs(x = expression("Elevation" * (degrees)), y = "Number of Weather Stations")
+```
+The number of weather stations with high elevation is about the same for all regions. But the northeast does have the most. For low elevation weather stations, the Southeast region has the most by far and there or no low elevation stations in the northeast.
 
 ##6 Use stat_summary to examine mean dew point and wind speed by region with standard deviation error bars
 ```{r}
@@ -130,14 +138,53 @@ met_avg[!is.na(dew.point)] %>%
   ggplot(mapping = aes(x=region, y=dew.point)) + 
     stat_summary(fun.data = mean_sdl, 
   geom = "errorbar")
-
 ```
-I can show with means or error bars, but I want to show with both
+The mean dew point temperature is highest for the SE region. The standard deviations for NW and SW regions are similarly large. The standard deviations for the NE and SE regions are similarly small.
+
+```{r}
+met_avg[!is.na(wind.sp)] %>%
+  ggplot(mapping = aes(x=region, y=wind.sp)) + 
+    stat_summary(fun.data = mean_sdl, 
+  geom = "errorbar")
+```
+Wind speed is slightly highest in the SW region. All of the regions have about the same standard deviations. 
 
 ##7. Make a map of weather stations and show trend in relative humidity of top 10
+
 ```{r}
-rh <- colorNumeric(c('darkgreen','goldenrod','brown'), domain=met_avg2$temp)
+library(leaflet)
+met_avg2 <- met[,.(rh = mean(rh,na.rm=TRUE), lat = mean(lat), lon = mean(lon)),  by=c("USAFID")]
+met_avg2 <- met_avg2[!is.na(rh)]
+
+
+rh.pal <- colorNumeric(c('darkgreen','goldenrod','brown'), domain=met_avg2$rh)
 rh.pal
+```
+
+
+Use addMarkers to include the top 10 places in relative h (hint: this will be useful rank(-rh) <= 10)
+```{r}
+top10rh <- met_avg[order(-rh) <= 10 ]
+```
+```{r}
+#met_avg[order(-rh)][1:10]
+```
+
+```{r}
+rhmap <- leaflet(top10rh) %>% 
+  # The looks of the Map
+  addProviderTiles('CartoDB.Positron') %>% 
+  # Some circles
+  addCircles(
+    lat = ~lat, lng=~lon,
+                                                  # HERE IS OUR PAL!
+    label = ~paste0(rh), color = ~ rh.pal(rh),
+    opacity = 1, fillOpacity = 1, radius = 500
+    ) %>%
+  # And a pretty legend
+  addLegend('bottomleft', pal=rh.pal, values=met_avg$rh,
+          title='Relative Humidity', opacity=1)
+rhmap
 ```
 
 ```{r}
@@ -148,22 +195,23 @@ rhmap <- leaflet(met_avg) %>%
   addCircles(
     lat = ~lat, lng=~lon,
                                                   # HERE IS OUR PAL!
-    label = ~paste0(round(temp,2), ' C'), color = ~ temp.pal(rh),
+    label = ~paste0(rh), color = ~ rh.pal(rh),
     opacity = 1, fillOpacity = 1, radius = 500
     ) %>%
   # And a pretty legend
-  addLegend('bottomleft', pal=temp.pal, values=met_avg2$temp,
-          title='Temperature, C', opacity=1)
+  addLegend('bottomleft', pal=rh.pal, values=met_avg$rh,
+          title='Relative Humidity', opacity=1)
+rhmap
 ```
 
-Use addMarkers to include the top 10 places in relative h (hint: this will be useful rank(-rh) <= 10)
+The spatial trend in relative humidity across the US is that the eastern side of the country as well as the West Coast are most humid. The west side of the country is dry. 
+
+## 8. Use a ggplot extension
+
 ```{r}
-met_avg[order(-rh) <= 10 ]
+library(ggforce)
+#> Loading required package: ggplot2
+ggplot(met_avg, aes(rh, wind.sp, colour = region)) +
+  geom_point() 
 ```
-
-```{r}
-top10rh[ order(-rh) <= 1:10]
-```
-
-
 
