@@ -1,0 +1,133 @@
+---
+title: "HW1"
+author: "Megan Tran"
+date: '`September 23, 2022'
+output: github_document
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(data.table)
+library(dplyr)
+library(dtplyr)
+library(readr)
+library(ggplot2)
+```
+
+##Step 1
+```{r read-data}
+pm04 <- data.table::fread("ad_viz_plotval_2004_data.csv") 
+pm19 <- data.table::fread("ad_viz_plotval_data_2019.csv") 
+```
+
+
+```{r}
+dim(pm04)
+head(pm04)
+tail(pm04)
+```
+
+```{r}
+dim(pm19)
+head(pm19)
+tail(pm19)
+```
+
+```{r}
+dim(pm19)
+head(pm19)
+tail(pm19)
+```
+
+```{r}
+str(pm04)
+```
+
+```{r}
+str(pm19)
+```
+
+
+```{r}
+summary(pm04$`Daily Mean PM2.5 Concentration`)
+summary(pm19$`Daily Mean PM2.5 Concentration`)
+```
+
+Summary of findings: There are 19,233 observations in the 2004 dataset and 53,156 observations in the 2019 dataset. There are 20 variables in both datasets. The minimum PM2.5 concentration for both 2004 and 2019 datasets are small, negative values. The atmosphere technically can't have a negative amount of PM in it, but according to  epa.gov, "if the atmosphere is very clean and there is noise in the measurement, then a negative number may in fact be valid. Invalidating data or correcting to 0 would lead to biasing data higher" Therefore, I decided to keep all values of PM2.5 in the data, especially since the negative values are still close to 0,  to avoid data biases.
+
+
+##Step 2  
+
+
+```{r}
+pm04[,year:=2004]
+pm19[,year:=2019]
+pmboth<- rbind(pm04,pm19) 
+```
+
+
+##Step 3
+
+
+```{r}
+library(leaflet)
+tem.pal <- colorFactor(topo.colors(2), domain = pmboth$year)
+leaflet(pmboth) %>% 
+   addTiles() %>%
+   addCircles (lat = ~SITE_LATITUDE, lng = ~SITE_LONGITUDE, color = ~tem.pal(year),
+                label = ~year, 
+                opacity=0.01, fillOpacity = 0.01, radius = 500) %>%
+addLegend('bottomleft', pal= tem.pal, values = pmboth$year,
+              title ='year', opacity=1)
+```
+
+
+
+
+The sites are densely located in the Bay Area and Southern California. There are many more sites in 2019 than in 2004, meaning the sites expanded!
+
+##Step 4 
+```{r}
+mean(is.na(pmboth))
+```
+ 
+Because the proportion of missing values is extremely low (0.00357), I chose to ignore them for now.
+
+
+##Step 5
+
+State level: California
+
+```{r}
+ggplot(pmboth)+
+geom_boxplot(mapping = aes(x = year, y = `Daily Mean PM2.5 Concentration`, group = year))
+```
+
+The boxplot indicates that PM2.5 concentrations in 2019 are lower than in 2004, suggesting that concentrations did decrease.
+
+```{r}
+summary(pm04$'Daily Mean PM2.5 Concentration')
+```
+
+```{r}
+summary(pm19$'Daily Mean PM2.5 Concentration')
+```
+
+Comparing the summary statistics, the mean concentration in 2019 (7.741) was indeed lower than in 2004 (13.13).
+
+
+County level
+
+```{r}
+county <- group_by(pmboth, year, COUNTY) %>% 
+  summarize('Daily Mean PM2.5 Concentration' = mean('Daily Mean PM2.5 Concentration', na.rm = TRUE))
+```
+
+
+
