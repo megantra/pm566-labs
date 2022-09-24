@@ -455,9 +455,12 @@ was indeed lower than in 2004 (13.13).
 County level
 
 ``` r
-county <- group_by(pmboth, year, COUNTY) %>% 
-  summarize('Daily Mean PM2.5 Concentration' = mean('Daily Mean PM2.5 Concentration', na.rm = TRUE))
+ggplot(pmboth)+
+geom_boxplot(mapping = aes(x = COUNTY, y = `Daily Mean PM2.5 Concentration`, color = factor(year)))
 ```
 
-    ## `summarise()` has grouped output by 'year'. You can override using the `.groups`
-    ## argument.
+![](HW1_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+Based on these box plots, it seems like the boxplots for 2019 are lower
+than those for 2004, again implying that PM 2.5 concentrations did
+decrease over the years.

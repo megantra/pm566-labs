@@ -124,10 +124,16 @@ Comparing the summary statistics, the mean concentration in 2019 (7.741) was ind
 
 County level
 
+
 ```{r}
-county <- group_by(pmboth, year, COUNTY) %>% 
-  summarize('Daily Mean PM2.5 Concentration' = mean('Daily Mean PM2.5 Concentration', na.rm = TRUE))
+ggplot(pmboth)+
+geom_boxplot(mapping = aes(x = COUNTY, y = `Daily Mean PM2.5 Concentration`, color = factor(year)))
 ```
+
+Based on these box plots, it seems like the boxplots for 2019 are lower than those for 2004, again implying that PM 2.5 concentrations did decrease over the years.
+
+
+
 
 
 
