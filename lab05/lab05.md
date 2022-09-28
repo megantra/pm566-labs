@@ -62,10 +62,10 @@ library(dtplyr)
 ## 1. Read in the data
 
 ``` r
-if (!file.exists("met_all.gz")) {
+if (!file.exists("../lab03/met_all.gz")) {
 download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz", "met_all.gz", method="libcurl", timeout = 60) 
 }
-met <- data.table::fread("met_all.gz") 
+met <- data.table::fread("../lab03/met_all.gz") 
 ```
 
 Remove temperatures less than -17C and Make sure there are no missing
@@ -295,3 +295,11 @@ station_averages [ ,
     ## 1586:             NaN
     ## 1587:             NaN
     ## 1588:             NaN
+
+## Question 2: Representative station per state
+
+Just like the previous question, you are asked to identify what is the
+most representative, the median, station per state. This time, instead
+of looking at one variable at a time, look at the euclidean distance. If
+multiple stations show in the median, select the one located at the
+lowest latitude.
