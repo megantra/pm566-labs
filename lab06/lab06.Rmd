@@ -90,9 +90,65 @@ mts %>%
   ggplot(aes(n, fct_reorder(word, n))) +
   geom_col()
 ```
-
-
 What do we see know that we have removed stop words? Does it give us a better idea of what the text is about?
 
+Removing the stopwords and numbers gives us a much better idea of what the text is about 
+
+##Question 4
+repeat question 2, but this time tokenize into bi-grams. 
+
+```{r bigrams-transcription, cache=TRUE}
+mts %>%
+  unnest_ngrams(bigram, transcription, n=2) %>%
+  count(bigram, sort = TRUE) %>%
+  top_n(20, n) %>%
+  ggplot(aes(n, fct_reorder(bigram, n))) +
+  geom_col()
+```
 
 
+how does the result change if you look at tri-grams?
+
+```{r trigrams-transcription, cache=TRUE}
+mts %>%
+  unnest_ngrams(trigram, transcription, n=3) %>%
+  count(trigram, sort = TRUE) %>%
+  top_n(20, n) %>%
+  ggplot(aes(n, fct_reorder(trigram, n))) +
+  geom_col()
+```
+
+The top 20 trigrams seemed to find a few more medical word groups than bigrams.
+
+##Question 5
+Using the results you got from questions 4. Pick a word and count the words that appears after and before it.
+
+```{r bigrams-transcription-nextword, cache=TRUE}
+ptbigram <-
+mts %>%
+  unnest_ngrams(bigram, transcription, n=2) %>%
+  separate(bigram, into = c("word1", "word2"), sep = " ") %>%
+  select(word1, word2) %>%
+  filter(word1 == "patient" | word2 == "patient")
+```
+
+Words appearing before patient: 
+
+```{r before-patient}
+ptbigram %>%
+  filter(word2=="patient") %>%
+  count(word1, sort=TRUE) %>%
+  anti_join(stop_words, by = c("word1" = "word")) %>%
+  top_n(10) %>%
+knitr::kable()
+```
+Words appearing after patient: 
+
+```{r after-patient}
+ptbigram %>%
+  filter(word1=="patient") %>%
+  count(word2, sort=TRUE) %>%
+  anti_join(stop_words, by = c("word2" = "word")) %>%
+  top_n(10) %>%
+knitr::kable()
+```
