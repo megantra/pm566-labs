@@ -125,12 +125,8 @@ summary(data$smoke_gas_exposure)
 Create four summary tables showing the average (or proportion, if binary) and sd of “Forced expiratory volume in 1 second (ml)” and asthma indicator by town, sex, obesity level, and “smoke_gas_exposure.”
 
 ```{r}
-data[, .(
-    min_bmi      = min(bmi_imp, na.rm=TRUE),
-    max_bmi   = max(bmi_imp, na.rm=TRUE), length(bmi_imp)
-    ),
-    by = obesity_level
-    ][order(obesity_level)] 
+data[, asthma_imp := fcoalesce(asthma, mean(asthma, na.rm = TRUE)),
+by = .(male,hispanic)]
 ```
 
 
