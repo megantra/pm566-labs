@@ -1,0 +1,86 @@
+---
+title: "HW2"
+author: "Megan Tran"
+date: '`October 3, 2022'
+output: github_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install-libraries}
+library(tidytext)
+library(tidyverse)
+library(dplyr)
+library(dtplyr)
+library(ggplot2)
+library(data.table)
+```
+
+#Read in the data
+```{r read-data, cache=TRUE}
+if (!file.exists("individual.csv")) {
+download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/01_chs/chs_individual.csv", "individual.csv", method="libcurl", timeout = 60) 
+}
+ind <- data.table::fread("individual.csv")
+
+str(ind)
+```
+
+```{r read-data-2, cache=TRUE}
+if (!file.exists("regional.csv")) {
+download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/01_chs/chs_regional.csv", "regional.csv", method="libcurl", timeout = 60) 
+}
+reg <- data.table::fread("regional.csv")
+
+str(reg)
+```
+
+
+#Merging the 2 datasets, making sure there's no duplicates
+```{r}
+nrow(reg)
+nrow(ind)
+```
+
+
+```{r merging-data}
+data <-
+merge(
+  # Data
+  x     = ind,      
+  y     = reg, 
+  # List of variables to match
+  by.x  = "townname",
+  by.y  = "townname", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  all.y = FALSE
+  ) 
+```
+
+```{r}
+nrow(data)
+```
+
+There are still 1200 rows in the merged dataset.
+
+#missing data? 
+```{r}
+!is.na(data)
+```
+
+#impute missing values with average from "male" and "hispanic"
+```{r}
+data[(hispanic == 1) & (male== 1), mean(agepft:lat)] 
+```
+
+
+```{r}
+data[hispanic == 1 & male== 1,                    
+        lapply(.SD, mean)]
+```
+
+
