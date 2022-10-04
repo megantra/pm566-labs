@@ -61,26 +61,87 @@ merge(
   ) 
 ```
 
+##Data Wrangling
+
+#Question 1 Impute data
 ```{r}
 nrow(data)
 ```
 
 There are still 1200 rows in the merged dataset.
 
-#missing data? 
+#missing values? 
 ```{r}
-!is.na(data)
+mean(is.na(data))
 ```
+Although the proportion of missing values is low, I'll be imputing it with the average from "male" "hispanic".
 
 #impute missing values with average from "male" and "hispanic"
-```{r}
-data[(hispanic == 1) & (male== 1), mean(agepft:lat)] 
+```{r impute-bmi}
+data[, bmi_imp := fcoalesce(bmi, mean(bmi, na.rm = TRUE)),
+by = .(male,hispanic)]
+```
+
+```{r impute-fev}
+data[, fev_imp := fcoalesce(fev, mean(fev, na.rm = TRUE)),
+by = .(male,hispanic)]
 ```
 
 
+#Question 2 
+Create a new categorical variable named “obesity_level” using the BMI measurement (underweight BMI<14; normal BMI 14-22; overweight BMI 22-24; obese BMI>24). To make sure the variable is rightly coded, create a summary table that contains the minimum BMI, maximum BMI, and the total number of observations per category.
+
 ```{r}
-data[hispanic == 1 & male== 1,                    
-        lapply(.SD, mean)]
+data$obesity_level <- as.factor(ifelse(data$bmi_imp<14, 'Underweight',
+                              ifelse(data$bmi_imp>=14 & data$bmi_imp<22, 'Normal',
+                              ifelse(data$bmi_imp>=22 & data$bmi_imp<=24, 'Overweight',
+                              ifelse(data$bmi_imp>24, 'Obese','Missing')))))
+```
+
+```{r}
+data[, .(
+    min_bmi      = min(bmi_imp, na.rm=TRUE),
+    max_bmi   = max(bmi_imp, na.rm=TRUE), length(bmi_imp)
+    ),
+    by = obesity_level
+    ][order(obesity_level)] 
+```
+
+#Question 3 
+Create another categorical variable named “smoke_gas_exposure” that summarizes “Second Hand Smoke” and “Gas Stove.” The variable should have four categories in total.
+
+```{r}
+data$smoke_gas_exposure <- as.factor(ifelse(data$smoke==1 & data$gasstove==1, 'Both',
+                                     ifelse(data$smoke==1 & data$gasstove==0, 'SmokeOnly',
+                                            ifelse(data$smoke==0 & data$gasstove==1, 'GasOnly',
+                                                   ifelse(data$smoke==0 & data$gasstove==0, 'None','Missing')))))
+```
+
+```{r}
+summary(data$smoke_gas_exposure)
+```
+
+#Question 4
+Create four summary tables showing the average (or proportion, if binary) and sd of “Forced expiratory volume in 1 second (ml)” and asthma indicator by town, sex, obesity level, and “smoke_gas_exposure.”
+
+```{r}
+data[, .(
+    min_bmi      = min(bmi_imp, na.rm=TRUE),
+    max_bmi   = max(bmi_imp, na.rm=TRUE), length(bmi_imp)
+    ),
+    by = obesity_level
+    ][order(obesity_level)] 
+```
+
+
+##Looking at the Data (EDA)
+
+
+#Question 1.
+Facet plot showing scatterplots with regression lines of BMI vs FEV by “townname”.
+
+```{r}
+
 ```
 
 
