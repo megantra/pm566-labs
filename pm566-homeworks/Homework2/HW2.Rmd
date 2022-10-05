@@ -87,6 +87,10 @@ data[, fev_imp := fcoalesce(fev, mean(fev, na.rm = TRUE)),
 by = .(male,hispanic)]
 ```
 
+```{r impute-asthma}
+data[, asthma_imp := fcoalesce(as.numeric(asthma), mean(asthma, na.rm = TRUE)),
+by = .(male,hispanic)]
+```
 
 #Question 2 
 Create a new categorical variable named “obesity_level” using the BMI measurement (underweight BMI<14; normal BMI 14-22; overweight BMI 22-24; obese BMI>24). To make sure the variable is rightly coded, create a summary table that contains the minimum BMI, maximum BMI, and the total number of observations per category.
@@ -101,7 +105,7 @@ data$obesity_level <- as.factor(ifelse(data$bmi_imp<14, 'Underweight',
 ```{r}
 data[, .(
     min_bmi      = min(bmi_imp, na.rm=TRUE),
-    max_bmi   = max(bmi_imp, na.rm=TRUE), length(bmi_imp)
+    max_bmi   = max(bmi_imp, na.rm=TRUE), count = length(bmi_imp)
     ),
     by = obesity_level
     ][order(obesity_level)] 
@@ -125,19 +129,49 @@ summary(data$smoke_gas_exposure)
 Create four summary tables showing the average (or proportion, if binary) and sd of “Forced expiratory volume in 1 second (ml)” and asthma indicator by town, sex, obesity level, and “smoke_gas_exposure.”
 
 ```{r}
-data[, asthma_imp := fcoalesce(asthma, mean(asthma, na.rm = TRUE)),
-by = .(male,hispanic)]
+data[, .(
+    mean_fev     = mean(fev_imp, na.rm=TRUE),
+    sd_fev       = sd(fev_imp, na.rm=TRUE), 
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
+    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    ),
+    by = townname
+    ][order(townname)] 
 ```
 
 
 ##Looking at the Data (EDA)
 
+EDA Checklist
+
+Formulate a question: 1. What is the association between BMI and FEV (forced expiratory volume)? 2. What is the association between smoke and gas exposure and FEV? 3. What is the association between PM2.5 exposure and FEV?
+Read in the data: done
+Check the dimensions and headers and footers of the data: 
+
+```{r}
+dim(data)
+head(data)
+tail(data)
+```
+
+Check the variable types in the data: done
+
+Take a closer look at some/all of the variables: done
+Validate with an external source
+Conduct some summary statistics to answer the initial question
 
 #Question 1.
 Facet plot showing scatterplots with regression lines of BMI vs FEV by “townname”.
 
 ```{r}
-
+ggplot(data = data, mapping = aes(x = bmi_imp, y = fev_imp, color=townname)) + 
+  geom_point() + 
+  geom_smooth(method = lm, col = "black") +
+  labs(title = "Scatterplots of BMI vs FEV by Town") + 
+  labs(x = expression("Body Mass Index"), y = "Forced Expiratory Volume") +
+  facet_wrap(~ townname, nrow = 3, ncol=4)
 ```
+Based on these scatterplots, it can be gathered that BMI and FEV are positively correlated for those in all 12 towns.
+
 
 
