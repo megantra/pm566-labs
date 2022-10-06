@@ -216,7 +216,7 @@ Stove.” The variable should have four categories in total.
 data$smoke_gas_exposure <- as.factor(ifelse(data$smoke==1 & data$gasstove==1, 'Both',
                                      ifelse(data$smoke==1 & data$gasstove==0, 'SmokeOnly',
                                             ifelse(data$smoke==0 & data$gasstove==1, 'GasOnly',
-                                                   ifelse(data$smoke==0 & data$gasstove==0, 'None','Missing')))))
+                                                   ifelse(data$smoke==0 & data$gasstove==0, 'None', 'Missing')))))
 ```
 
 ``` r
@@ -255,6 +255,56 @@ data[, .(
     ## 10:     San Dimas 2026.794 318.7845   0.1712392 0.3771647
     ## 11:   Santa Maria 2025.750 312.1725   0.1348240 0.3372912
     ## 12:        Upland 2024.266 343.1637   0.1212392 0.3263737
+
+``` r
+data[, .(
+    mean_fev     = mean(fev_imp, na.rm=TRUE),
+    sd_fev       = sd(fev_imp, na.rm=TRUE), 
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
+    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    ),
+    by = male
+    ]
+```
+
+    ##    male mean_fev   sd_fev prop_asthma sd_asthma
+    ## 1:    0 1958.911 311.9181   0.1208035 0.3224043
+    ## 2:    1 2103.787 307.5123   0.1726819 0.3728876
+
+``` r
+data[, .(
+    mean_fev     = mean(fev_imp, na.rm=TRUE),
+    sd_fev       = sd(fev_imp, na.rm=TRUE), 
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
+    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    ),
+    by = obesity_level
+    ][order(obesity_level)] 
+```
+
+    ##    obesity_level mean_fev   sd_fev prop_asthma sd_asthma
+    ## 1:        Normal 1999.794 295.1964  0.14036063 0.3426863
+    ## 2:         Obese 2266.154 325.4710  0.20819643 0.4034416
+    ## 3:    Overweight 2224.322 317.4261  0.16409910 0.3687886
+    ## 4:   Underweight 1698.327 303.3983  0.08571429 0.2840286
+
+``` r
+data[, .(
+    mean_fev     = mean(fev_imp, na.rm=TRUE),
+    sd_fev       = sd(fev_imp, na.rm=TRUE), 
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
+    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    ),
+    by = smoke_gas_exposure
+    ][order(smoke_gas_exposure)] 
+```
+
+    ##    smoke_gas_exposure mean_fev   sd_fev prop_asthma sd_asthma
+    ## 1:               Both 2019.867 298.9728   0.1303123 0.3319599
+    ## 2:            GasOnly 2025.989 317.6305   0.1478616 0.3531690
+    ## 3:               None 2055.356 330.4169   0.1476213 0.3522319
+    ## 4:          SmokeOnly 2055.714 295.6475   0.1717490 0.3768879
+    ## 5:               <NA> 2001.878 340.2592   0.1475272 0.3179866
 
 \##Looking at the Data (EDA)
 
@@ -400,6 +450,107 @@ ggplot(data = data, mapping = aes(x = bmi_imp, y = fev_imp, color=townname)) +
 
     ## `geom_smooth()` using formula 'y ~ x'
 
-![](HW2_files/figure-gfm/unnamed-chunk-10-1.png)<!-- --> Based on these
+![](HW2_files/figure-gfm/unnamed-chunk-13-1.png)<!-- --> Based on these
 scatterplots, it can be gathered that BMI and FEV are positively
 correlated for those in all 12 towns.
+
+\#Question 2 Stacked histograms of FEV by BMI category and FEV by
+smoke/gas exposure. Use different color schemes than the ggplot default.
+
+``` r
+ggplot(data=data) +
+  geom_histogram(mapping = aes(x = fev_imp, fill = obesity_level)) +
+        scale_fill_brewer(palette = "Pastel1")
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](HW2_files/figure-gfm/unnamed-chunk-14-1.png)<!-- --> There are a
+significantly greater amount of those with “Normal” BMI than any other
+category. The second largest group our “Obese”. But there isn’t a clear
+association between obesity level and fev.
+
+``` r
+ggplot(data=data) +
+  geom_histogram(mapping = aes(x = fev_imp, fill = smoke_gas_exposure)) + 
+        scale_fill_brewer(palette = "Set2") 
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](HW2_files/figure-gfm/unnamed-chunk-15-1.png)<!-- --> It seems like
+second hand smoke and gas exposure together result in the highest FEV.
+Being exposed to gas only is closely second. Therefore, there might be a
+correlation between FEV and smoke/gas exposure.
+
+\#Question 3 Barchart of BMI by smoke/gas exposure.
+
+``` r
+ggplot(data=data) +
+  geom_bar(mapping = aes(x = obesity_level, fill = smoke_gas_exposure))
+```
+
+![](HW2_files/figure-gfm/unnamed-chunk-16-1.png)<!-- --> From this
+barchart, I can see that a majority of people in all groups are exposed
+to gas only. Again, there doesn’t seem to be correlation between BMI and
+smoke/gas exposure.
+
+\#Question 4 Statistical summary graphs of FEV by BMI (obesity level)
+and FEV by smoke/gas exposure category.
+
+``` r
+data[!is.na(fev_imp)] %>%
+  ggplot(mapping = aes(x=obesity_level, y=fev_imp)) + 
+    stat_summary(fun.data = mean_sdl,
+  geom = "errorbar")      
+```
+
+![](HW2_files/figure-gfm/unnamed-chunk-17-1.png)<!-- --> This
+visualization gives me the most information. I can see that as the BMI
+increaseses, so do the bars. Perhaps there’s a correlation between the
+variables after all.
+
+``` r
+data[!is.na(fev_imp)] %>%
+  ggplot(mapping = aes(x=smoke_gas_exposure, y=fev_imp)) + 
+    stat_summary(fun.data = mean_sdl,
+  geom = "errorbar")      
+```
+
+![](HW2_files/figure-gfm/unnamed-chunk-18-1.png)<!-- --> The lowest bar
+is the “Both” category and shortly after is the “SmokeOnly”. This graph
+also indicates that there might be a correlation between the variables.
+
+\#Question 5 A leaflet map showing the concentrations of PM2.5 mass in
+each of the CHS communities.
+
+``` r
+library(leaflet)
+pm25.pal <- colorFactor(topo.colors(12), domain = data$pm25_mass)
+leaflet(data) %>% 
+   addTiles() %>%
+   addCircles (lat = ~lat, lng = ~lon, color = ~pm25.pal(pm25_mass),
+                label = ~paste0(pm25_mass),
+                opacity=0.01, fillOpacity = 0.05, radius = 5000) %>%
+addLegend('bottomleft', pal= pm25.pal, values = (data$pm25_mass),
+              title ='PM 2.5 Mass', opacity=1)
+```
+
+![](HW2_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+As a general trend, the communities that are more north have smaller
+concentrations of PM 2.5 than the southern communities.
+
+\#Question 6 Choose a visualization to examine whether PM2.5 mass is
+associated with FEV.
+
+``` r
+ggplot(data=data) + 
+  geom_point(mapping = aes(x = pm25_mass, y = fev_imp))+
+  geom_smooth(mapping = aes(x = pm25_mass, y = fev_imp))
+```
+
+    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+
+![](HW2_files/figure-gfm/unnamed-chunk-20-1.png)<!-- --> I don’t see a
+correlation because the regression line is almost horizontal.
