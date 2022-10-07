@@ -1,7 +1,7 @@
 ---
 title: "HW2"
 author: "Megan Tran"
-date: '`October 3, 2022'
+date: '`October 7, 2022'
 output: github_document
 always_allow_html: true
 ---
@@ -74,7 +74,7 @@ There are still 1200 rows in the merged dataset.
 ```{r}
 mean(is.na(data))
 ```
-Although the proportion of missing values is low, I'll be imputing it with the average from "male" "hispanic".
+Although the proportion of missing values is low (2.78%) and won't affect the data much, I'll still be imputing the missing values with the average from "male" "hispanic".
 
 #impute missing values with average from "male" and "hispanic"
 ```{r impute-bmi}
@@ -131,30 +131,30 @@ Create four summary tables showing the average (or proportion, if binary) and sd
 
 ```{r}
 data[, .(
+   count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = townname
     ][order(townname)] 
 ```
 ```{r}
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = male
-    ]
+    ][order(male)] 
 ```
 ```{r}
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = obesity_level
     ][order(obesity_level)] 
@@ -162,10 +162,10 @@ data[, .(
 
 ```{r}
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = smoke_gas_exposure
     ][order(smoke_gas_exposure)] 
@@ -211,14 +211,18 @@ Stacked histograms of FEV by BMI category and FEV by smoke/gas exposure. Use dif
 ```{r}
 ggplot(data=data) +
   geom_histogram(mapping = aes(x = fev_imp, fill = obesity_level)) +
-        scale_fill_brewer(palette = "Pastel1")
+        scale_fill_brewer(palette = "Pastel1") +
+        labs(title = "Histogram of FEV by Obesity Level") + 
+         labs(x = expression("FEV"), y = "Count") 
 ```  
-There are a significantly greater amount of those with "Normal" BMI than any other category. The second largest group our "Obese". But there isn't a clear association between obesity level and fev.
+There are a significantly greater amount of those with "Normal" BMI than any other category. The second largest group is "Obese". But there isn't a clear association between obesity level and fev that can be gathered from this graph.
 
 ```{r}
 ggplot(data=data) +
   geom_histogram(mapping = aes(x = fev_imp, fill = smoke_gas_exposure)) + 
-        scale_fill_brewer(palette = "Set2") 
+        scale_fill_brewer(palette = "Set2") +
+        labs(title = "Histogram of FEV by Smoke/gas exposure") + 
+        labs(x = expression("FEV"), y = "Count") 
 ```
 It seems like second hand smoke and gas exposure together result in the highest FEV. Being exposed to gas only is closely second. Therefore, there might be a correlation between FEV and smoke/gas exposure. 
 
@@ -227,7 +231,9 @@ Barchart of BMI by smoke/gas exposure.
 
 ```{r}
 ggplot(data=data) +
-  geom_bar(mapping = aes(x = obesity_level, fill = smoke_gas_exposure))
+  geom_bar(mapping = aes(x = obesity_level, fill = smoke_gas_exposure)) +
+    labs(title = "Bar Graph of BMI by Smoke/Gas Exposure") + 
+         labs(x = expression("Obesity Level"), y = "Count") 
 ```
 From this barchart, I can see that a majority of people in all groups are exposed to gas only. Again, there doesn't seem to be correlation between BMI and smoke/gas exposure.
 
@@ -239,17 +245,19 @@ Statistical summary graphs of FEV by BMI (obesity level) and FEV by smoke/gas ex
 ```{r}
 data[!is.na(fev_imp)] %>%
   ggplot(mapping = aes(x=obesity_level, y=fev_imp)) + 
-    stat_summary(fun.data = mean_sdl,
-  geom = "errorbar")      
+    stat_summary(fun.data = mean_sdl, geom = "errorbar") +
+    labs(title = "Statistical Summary Graph of FEV by Obesity Level") + 
+         labs(x = expression("Obesity Level"), y = "FEV") 
 ```
-This visualization gives me the most information. I can see that as the BMI increaseses, so do the bars. Perhaps there's a correlation between the variables after all.
+This visualization gives me the most information. I can see that as the BMI increases, so do the bars. Perhaps there's a correlation between the variables after all.
 
 
 ```{r}
 data[!is.na(fev_imp)] %>%
   ggplot(mapping = aes(x=smoke_gas_exposure, y=fev_imp)) + 
-    stat_summary(fun.data = mean_sdl,
-  geom = "errorbar")      
+    stat_summary(fun.data = mean_sdl, geom = "errorbar") +
+      labs(title = "Statistical Summary Graph of FEV by Smoke/Gas Category") + 
+         labs(x = expression("Smoke/Gas Exposure"), y = "FEV") 
 ```
 The lowest bar is the "Both" category and shortly after is the "SmokeOnly". This graph also indicates that there might be a correlation between the variables.
 
@@ -273,13 +281,13 @@ As a general trend, the communities that are more north have smaller concentrati
 
 
 #Question 6 
-Choose a visualization to examine whether PM2.5 mass is associated with FEV.
+Choose a visualization to examine whether PM2.5 mass is associated with FEV. I chpse to do a scatterplot with a regression line.
 
 ```{r}
 ggplot(data=data) + 
   geom_point(mapping = aes(x = pm25_mass, y = fev_imp))+
   geom_smooth(mapping = aes(x = pm25_mass, y = fev_imp))
 ```
-I don't see a correlation because the regression line is almost horizontal.
+I don't see a correlation between PM2.5 and FEV because the regression line is almost horizontal.
 
 

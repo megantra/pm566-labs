@@ -1,7 +1,7 @@
 HW2
 ================
 Megan Tran
-\`October 3, 2022
+\`October 7, 2022
 
 ``` r
 library(tidytext)
@@ -160,8 +160,9 @@ mean(is.na(data))
 
     ## [1] 0.02782313
 
-Although the proportion of missing values is low, I’ll be imputing it
-with the average from “male” “hispanic”.
+Although the proportion of missing values is low (2.78%) and won’t
+affect the data much, I’ll still be imputing the missing values with the
+average from “male” “hispanic”.
 
 \#impute missing values with average from “male” and “hispanic”
 
@@ -233,78 +234,78 @@ proportion, if binary) and sd of “Forced expiratory volume in 1 second
 
 ``` r
 data[, .(
+   count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = townname
     ][order(townname)] 
 ```
 
-    ##          townname mean_fev   sd_fev prop_asthma sd_asthma
-    ##  1:        Alpine 2087.101 291.1768   0.1144423 0.3139348
-    ##  2:    Atascadero 2075.897 324.0935   0.2528408 0.4340107
-    ##  3: Lake Elsinore 2038.849 303.6956   0.1274366 0.3255095
-    ##  4:  Lake Gregory 2084.700 319.9593   0.1512392 0.3585609
-    ##  5:     Lancaster 2003.044 317.1298   0.1640054 0.3674206
-    ##  6:        Lompoc 2034.354 351.0454   0.1142335 0.3139431
-    ##  7:    Long Beach 1985.861 319.4625   0.1359886 0.3370219
-    ##  8:     Mira Loma 1985.202 324.9634   0.1582359 0.3572088
-    ##  9:     Riverside 1989.881 277.5065   0.1100000 0.3144660
-    ## 10:     San Dimas 2026.794 318.7845   0.1712392 0.3771647
-    ## 11:   Santa Maria 2025.750 312.1725   0.1348240 0.3372912
-    ## 12:        Upland 2024.266 343.1637   0.1212392 0.3263737
+    ##          townname count mean_fev   sd_fev prop_asthma
+    ##  1:        Alpine   100 2087.101 291.1768   0.1144423
+    ##  2:    Atascadero   100 2075.897 324.0935   0.2528408
+    ##  3: Lake Elsinore   100 2038.849 303.6956   0.1274366
+    ##  4:  Lake Gregory   100 2084.700 319.9593   0.1512392
+    ##  5:     Lancaster   100 2003.044 317.1298   0.1640054
+    ##  6:        Lompoc   100 2034.354 351.0454   0.1142335
+    ##  7:    Long Beach   100 1985.861 319.4625   0.1359886
+    ##  8:     Mira Loma   100 1985.202 324.9634   0.1582359
+    ##  9:     Riverside   100 1989.881 277.5065   0.1100000
+    ## 10:     San Dimas   100 2026.794 318.7845   0.1712392
+    ## 11:   Santa Maria   100 2025.750 312.1725   0.1348240
+    ## 12:        Upland   100 2024.266 343.1637   0.1212392
 
 ``` r
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = male
-    ]
+    ][order(male)] 
 ```
 
-    ##    male mean_fev   sd_fev prop_asthma sd_asthma
-    ## 1:    0 1958.911 311.9181   0.1208035 0.3224043
-    ## 2:    1 2103.787 307.5123   0.1726819 0.3728876
+    ##    male count mean_fev   sd_fev prop_asthma
+    ## 1:    0   610 1958.911 311.9181   0.1208035
+    ## 2:    1   590 2103.787 307.5123   0.1726819
 
 ``` r
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = obesity_level
     ][order(obesity_level)] 
 ```
 
-    ##    obesity_level mean_fev   sd_fev prop_asthma sd_asthma
-    ## 1:        Normal 1999.794 295.1964  0.14036063 0.3426863
-    ## 2:         Obese 2266.154 325.4710  0.20819643 0.4034416
-    ## 3:    Overweight 2224.322 317.4261  0.16409910 0.3687886
-    ## 4:   Underweight 1698.327 303.3983  0.08571429 0.2840286
+    ##    obesity_level count mean_fev   sd_fev prop_asthma
+    ## 1:        Normal   975 1999.794 295.1964  0.14036063
+    ## 2:         Obese   103 2266.154 325.4710  0.20819643
+    ## 3:    Overweight    87 2224.322 317.4261  0.16409910
+    ## 4:   Underweight    35 1698.327 303.3983  0.08571429
 
 ``` r
 data[, .(
+    count        = length(fev_imp),
     mean_fev     = mean(fev_imp, na.rm=TRUE),
     sd_fev       = sd(fev_imp, na.rm=TRUE), 
-    prop_asthma  = mean(asthma_imp, na.rm=TRUE),
-    sd_asthma    = sd(asthma_imp, na.rm=TRUE)
+    prop_asthma  = mean(asthma_imp, na.rm=TRUE)
     ),
     by = smoke_gas_exposure
     ][order(smoke_gas_exposure)] 
 ```
 
-    ##    smoke_gas_exposure mean_fev   sd_fev prop_asthma sd_asthma
-    ## 1:               Both 2019.867 298.9728   0.1303123 0.3319599
-    ## 2:            GasOnly 2025.989 317.6305   0.1478616 0.3531690
-    ## 3:               None 2055.356 330.4169   0.1476213 0.3522319
-    ## 4:          SmokeOnly 2055.714 295.6475   0.1717490 0.3768879
-    ## 5:               <NA> 2001.878 340.2592   0.1475272 0.3179866
+    ##    smoke_gas_exposure count mean_fev   sd_fev prop_asthma
+    ## 1:               Both   151 2019.867 298.9728   0.1303123
+    ## 2:            GasOnly   739 2025.989 317.6305   0.1478616
+    ## 3:               None   214 2055.356 330.4169   0.1476213
+    ## 4:          SmokeOnly    36 2055.714 295.6475   0.1717490
+    ## 5:               <NA>    60 2001.878 340.2592   0.1475272
 
 \##Looking at the Data (EDA)
 
@@ -460,20 +461,25 @@ smoke/gas exposure. Use different color schemes than the ggplot default.
 ``` r
 ggplot(data=data) +
   geom_histogram(mapping = aes(x = fev_imp, fill = obesity_level)) +
-        scale_fill_brewer(palette = "Pastel1")
+        scale_fill_brewer(palette = "Pastel1") +
+        labs(title = "Histogram of FEV by Obesity Level") + 
+         labs(x = expression("FEV"), y = "Count") 
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
 ![](HW2_files/figure-gfm/unnamed-chunk-14-1.png)<!-- --> There are a
 significantly greater amount of those with “Normal” BMI than any other
-category. The second largest group our “Obese”. But there isn’t a clear
-association between obesity level and fev.
+category. The second largest group is “Obese”. But there isn’t a clear
+association between obesity level and fev that can be gathered from this
+graph.
 
 ``` r
 ggplot(data=data) +
   geom_histogram(mapping = aes(x = fev_imp, fill = smoke_gas_exposure)) + 
-        scale_fill_brewer(palette = "Set2") 
+        scale_fill_brewer(palette = "Set2") +
+        labs(title = "Histogram of FEV by Smoke/gas exposure") + 
+        labs(x = expression("FEV"), y = "Count") 
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
@@ -487,7 +493,9 @@ correlation between FEV and smoke/gas exposure.
 
 ``` r
 ggplot(data=data) +
-  geom_bar(mapping = aes(x = obesity_level, fill = smoke_gas_exposure))
+  geom_bar(mapping = aes(x = obesity_level, fill = smoke_gas_exposure)) +
+    labs(title = "Bar Graph of BMI by Smoke/Gas Exposure") + 
+         labs(x = expression("Obesity Level"), y = "Count") 
 ```
 
 ![](HW2_files/figure-gfm/unnamed-chunk-16-1.png)<!-- --> From this
@@ -501,20 +509,22 @@ and FEV by smoke/gas exposure category.
 ``` r
 data[!is.na(fev_imp)] %>%
   ggplot(mapping = aes(x=obesity_level, y=fev_imp)) + 
-    stat_summary(fun.data = mean_sdl,
-  geom = "errorbar")      
+    stat_summary(fun.data = mean_sdl, geom = "errorbar") +
+    labs(title = "Statistical Summary Graph of FEV by Obesity Level") + 
+         labs(x = expression("Obesity Level"), y = "FEV") 
 ```
 
 ![](HW2_files/figure-gfm/unnamed-chunk-17-1.png)<!-- --> This
 visualization gives me the most information. I can see that as the BMI
-increaseses, so do the bars. Perhaps there’s a correlation between the
+increases, so do the bars. Perhaps there’s a correlation between the
 variables after all.
 
 ``` r
 data[!is.na(fev_imp)] %>%
   ggplot(mapping = aes(x=smoke_gas_exposure, y=fev_imp)) + 
-    stat_summary(fun.data = mean_sdl,
-  geom = "errorbar")      
+    stat_summary(fun.data = mean_sdl, geom = "errorbar") +
+      labs(title = "Statistical Summary Graph of FEV by Smoke/Gas Category") + 
+         labs(x = expression("Smoke/Gas Exposure"), y = "FEV") 
 ```
 
 ![](HW2_files/figure-gfm/unnamed-chunk-18-1.png)<!-- --> The lowest bar
@@ -542,7 +552,7 @@ As a general trend, the communities that are more north have smaller
 concentrations of PM 2.5 than the southern communities.
 
 \#Question 6 Choose a visualization to examine whether PM2.5 mass is
-associated with FEV.
+associated with FEV. I chpse to do a scatterplot with a regression line.
 
 ``` r
 ggplot(data=data) + 
@@ -553,4 +563,5 @@ ggplot(data=data) +
     ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
 
 ![](HW2_files/figure-gfm/unnamed-chunk-20-1.png)<!-- --> I don’t see a
-correlation because the regression line is almost horizontal.
+correlation between PM2.5 and FEV because the regression line is almost
+horizontal.
