@@ -16,6 +16,11 @@ library(httr)
 library(tidyverse)
 library(stringr)
 library(xml2)
+library (dplyr)
+library(dtplyr)
+library(forcats)
+library(ggplot2)
+library(tidytext)
 ```
 
 #APIs
@@ -76,7 +81,7 @@ publications <- GET(
     id  = paste(ids,collapse = ","),
   retmax = 250,
   rettype = "abstract"
-    ))
+  ))
 # character vector
 publications <- httr::content(publications)
 publications_text <- as.character(publications)
@@ -134,7 +139,29 @@ knitr::kable(database, caption = "Papers about sars-cov-2 trial vaccine")
 ```
 
 
+#Text Mining
+A new dataset has been added to the data science data repository https://github.com/USCbiostats/data-science-data/tree/master/03_pubmed. The dataset contains 3241 abstracts from articles across 5 search terms. Your job is to analyse these abstracts to find interesting insights.
+
+1. Tokenize the abstracts and count the number of each token. Do you see anything interesting? Does removing stop words change what tokens appear as the most frequent? What are the 5 most common tokens for each search term after removing stopwords?
+
+```{r}
+if (!file.exists("pubmed.csv")){
+  download.file("https://github.com/USCbiostats/data-science-data/tree/master/03_pubmed/pubmed.csv", "pubmed.csv", method="libcurl", timeout = 60)
+}
+
+data <- read.csv("pubmed.csv")
+str(pub)
+```
 
 
+```{r}
+mts %>%
+  unnest_tokens(word, transcription) %>%
+  #anti_join(stop_words, by = c("word")) %>%
+  count(word, sort = TRUE) %>%
+  top_n(20, n) %>%
+  ggplot(aes(n, fct_reorder(word, n))) +
+  geom_col()
+```
 
 
