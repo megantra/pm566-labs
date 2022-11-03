@@ -146,7 +146,7 @@ A new dataset has been added to the data science data repository https://github.
 
 ```{r}
 if (!file.exists("pubmed.csv")){
-  download.file("https://github.com/USCbiostats/data-science-data/tree/master/03_pubmed/pubmed.csv", "pubmed.csv", method="libcurl", timeout = 60)
+  download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/03_pubmed/pubmed.csv", "pubmed.csv", method="libcurl", timeout = 60)
 }
 
 data <- read.csv("pubmed.csv")
