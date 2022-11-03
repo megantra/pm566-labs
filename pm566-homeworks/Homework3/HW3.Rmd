@@ -1,0 +1,140 @@
+---
+title: "HW2"
+author: "Megan Tran"
+date: 'November 4, 2022'
+output: github_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rvest)
+library(httr)
+library(tidyverse)
+library(stringr)
+library(xml2)
+```
+
+#APIs
+Using the NCBI API, look for papers that show up under the term “sars-cov-2 trial vaccine.” Look for the data in the pubmed database, and then retrieve the details of the paper as shown in lab 7. How many papers were you able to find?
+
+```{r}
+# Downloading the website
+website <- xml2::read_html("https://pubmed.ncbi.nlm.nih.gov/?term=sars-cov-2+trial+vaccine")
+# Finding the counts
+counts <- xml2::xml_find_first(website, "/html/body/main/div[9]/div[2]/div[2]/div[1]/div[1]")
+# Turning it into text
+counts <- as.character(counts)
+# Extracting the data using regex
+stringr::str_extract(counts, "[0-9,]+")
+```
+
+There are 4005 papers that have the term “sars-cov-2 trial vaccine.”
+
+Using the list of pubmed ids you retrieved, download each papers’ details using the query parameter rettype = abstract. If you get more than 250 ids, just keep the first 250.
+
+```{r}
+library(httr)
+query_ids <- GET(
+  url   = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+  query = list(
+    db      = "pubmed",
+    term    = "sars-cov-2 trial vaccine",
+    retmax  = 250
+  ), 
+)
+# Extracting the content of the response of GET
+ids <- httr::content(query_ids)
+
+ids
+```
+
+
+```{r} 
+# Turn the result into a character vector
+ids <- as.character(ids)
+# Find all the ids 
+ids <- stringr::str_extract_all(ids, "<Id>[[:digit:]]+</Id>")[[1]]
+# Remove all the leading and trailing <Id> </Id>. Make use of "|"
+ids <- stringr::str_remove_all(ids, "</?Id>")
+
+head(ids)
+```
+
+
+As we did in lab 7. Create a dataset containing the following:
+
+
+```{r}
+publications <- GET(
+  url   = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
+  query = list(
+    db  = "pubmed",
+    id  = paste(ids,collapse = ","),
+  retmax = 250,
+  rettype = "abstract"
+    ))
+# character vector
+publications <- httr::content(publications)
+publications_text <- as.character(publications)
+```
+
+
+Pubmed ID number:
+```{r}
+pub_char_list <- xml2::xml_children(publications)
+pub_char_list <- sapply(pub_char_list, as.character)
+```
+
+
+Title of the paper:
+```{r}
+titles <- str_extract(pub_char_list, "<ArticleTitle>[[:print:][:space:]]+</ArticleTitle>")
+titles <- str_remove_all(titles, "</?[[:alnum:]- =\"]+>")
+```
+
+
+Name of the journal where it was published:
+```{r}
+journal <- str_extract(pub_char_list, "<Title>[[:print:][:space:]]+</Title>")
+journal <- str_remove_all(journal, "[\n]")
+journal <- str_remove_all(journal, "</?[[:alnum:]- =\"]+>")
+```
+
+
+Publication date:
+```{r}
+date <- str_extract(pub_char_list, "<PubDate>[[:print:][:space:]]+</PubDate>")
+date <- str_remove_all(date, "</?[[:alnum:]- =\"]+>")
+date <- str_remove_all(date, "[:space:]")
+date <- str_remove_all(date, "[\n]")
+```
+
+Abstract of the paper (if any):
+```{r}
+abstract <- str_extract(pub_char_list, "<Abstract>[[:print:][:space:]]+</Abtract>")
+abstract <- str_remove_all(abstract, "</?[[:alnum:]- =\"]+>")
+abstract <- str_replace_all(abstract, "[[:space:]]+", " ")
+```
+
+
+
+```{r}
+database <- data.frame(
+         PubMedId = ids,
+          Title   = titles,
+          Journal = journal,
+  PublicationDate = date,
+         Abstract = abstract
+)
+knitr::kable(database, caption = "Papers about sars-cov-2 trial vaccine")
+```
+
+
+
+
+
+
