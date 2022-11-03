@@ -150,7 +150,7 @@ if (!file.exists("pubmed.csv")){
 }
 
 data <- read.csv("pubmed.csv")
-str(pub)
+str(data)
 ```
 
 
