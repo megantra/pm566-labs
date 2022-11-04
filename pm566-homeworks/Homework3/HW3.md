@@ -29,12 +29,9 @@ library(ggplot2)
 library(tidytext)
 ```
 
-\#APIs
+# APIs
 
-\#Using the NCBI API, look for papers that show up under the term
-“sars-cov-2 trial vaccine.” Look for the data in the pubmed database,
-and then retrieve the details of the paper as shown in lab 7. How many
-papers were you able to find?
+# Using the NCBI API, look for papers that show up under the term “sars-cov-2 trial vaccine.” Look for the data in the pubmed database, and then retrieve the details of the paper as shown in lab 7. How many papers were you able to find?
 
 ``` r
 # Downloading the website
@@ -51,9 +48,7 @@ stringr::str_extract(counts, "[0-9,]+")
 
 There are 4007 papers that have the term “sars-cov-2 trial vaccine.”
 
-\#Using the list of pubmed ids you retrieved, download each papers’
-details using the query parameter rettype = abstract. If you get more
-than 250 ids, just keep the first 250.
+# Using the list of pubmed ids you retrieved, download each papers’ details using the query parameter rettype = abstract. If you get more than 250 ids, just keep the first 250.
 
 ``` r
 library(httr)
@@ -94,7 +89,7 @@ head(ids)
 
     ## [1] "36322837" "36320825" "36314847" "36307830" "36305195" "36301821"
 
-\#As we did in lab 7. Create a dataset containing the following:
+# As we did in lab 7. Create a dataset containing the following:
 
 ``` r
 publications <- GET(
@@ -110,21 +105,21 @@ publications <- httr::content(publications)
 publications_text <- as.character(publications)
 ```
 
-\#Pubmed ID number:
+# Pubmed ID number:
 
 ``` r
 pub_char_list <- xml2::xml_children(publications)
 pub_char_list <- sapply(pub_char_list, as.character)
 ```
 
-\#Title of the paper:
+# Title of the paper:
 
 ``` r
 titles <- str_extract(pub_char_list, "<ArticleTitle>[[:print:][:space:]]+</ArticleTitle>")
 titles <- str_remove_all(titles, "</?[[:alnum:]- =\"]+>")
 ```
 
-\#Name of the journal where it was published:
+# Name of the journal where it was published:
 
 ``` r
 journal <- str_extract(pub_char_list, "<Title>[[:print:][:space:]]+</Title>")
@@ -132,7 +127,7 @@ journal <- str_remove_all(journal, "[\n]")
 journal <- str_remove_all(journal, "</?[[:alnum:]- =\"]+>")
 ```
 
-\#Publication date:
+# Publication date:
 
 ``` r
 date <- str_extract(pub_char_list, "<PubDate>[[:print:][:space:]]+</PubDate>")
@@ -141,7 +136,7 @@ date <- str_remove_all(date, "[:space:]")
 date <- str_remove_all(date, "[\n]")
 ```
 
-\#Abstract of the paper (if any):
+# Abstract of the paper (if any):
 
 ``` r
 abstract <- str_extract(pub_char_list, "<Abstract>[[:print:][:space:]]+</Abstract>")
@@ -175,8 +170,9 @@ knitr::kable(database[1:10,], caption = "Papers about sars-cov-2 trial vaccine")
 
 Papers about sars-cov-2 trial vaccine
 
-\#Text Mining A new dataset has been added to the data science data
-repository
+# Text Mining
+
+A new dataset has been added to the data science data repository
 <https://github.com/USCbiostats/data-science-data/tree/master/03_pubmed>.
 The dataset contains 3241 abstracts from articles across 5 search terms.
 Your job is to analyse these abstracts to find interesting insights.
@@ -194,10 +190,7 @@ str(data)
     ##  $ abstract: chr  "Background and aims: Many patients with coronavirus disease 2019 (COVID-19) have underlying cardiovascular (CV)"| __truncated__ "Introduction: Contradictory data have been reported on the incidence of stroke in patients with COVID-19 and th"| __truncated__ "This article aims at collecting all information needed for dentists regarding the COVID-19 pandemic throughout "| __truncated__ "OBJECTIVE. The objective of our study was to determine the misdiagnosis rate of radiologists for coronavirus di"| __truncated__ ...
     ##  $ term    : chr  "covid" "covid" "covid" "covid" ...
 
-\#1. Tokenize the abstracts and count the number of each token. Do you
-see anything interesting? Does removing stop words change what tokens
-appear as the most frequent? What are the 5 most common tokens for each
-search term after removing stopwords?
+# 1. Tokenize the abstracts and count the number of each token. Do you see anything interesting? Does removing stop words change what tokens appear as the most frequent? What are the 5 most common tokens for each search term after removing stopwords?
 
 ``` r
 data %>%
@@ -229,8 +222,7 @@ data %>%
 stopwords are removed, the top 5 tokens are covid, patients, cancer,
 prostate, and disease.
 
-\#2. Tokenize the abstracts into bigrams. Find the 10 most common bigram
-and visualize them with ggplot2.
+# 2. Tokenize the abstracts into bigrams. Find the 10 most common bigram and visualize them with ggplot2.
 
 ``` r
 data %>%
@@ -244,10 +236,7 @@ data %>%
 ![](HW3_files/figure-gfm/unnamed-chunk-15-1.png)<!-- --> A few of these
 bi-grams are pairs of stop words so it’s not super helpful.
 
-\#3. Calculate the TF-IDF value for each word-search term combination.
-(here you want the search term to be the “document”) What are the 5
-tokens from each search term with the highest TF-IDF value? How are the
-results different from the answers you got in question 1?
+# 3. Calculate the TF-IDF value for each word-search term combination. (here you want the search term to be the “document”) What are the 5 tokens from each search term with the highest TF-IDF value? How are the results different from the answers you got in question 1?
 
 ``` r
 data %>%
