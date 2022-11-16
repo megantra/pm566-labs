@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 options(repos = c(CRAN = "http://cran.rstudio.com"))
 ```
 
-```{r}
+```{r libraries, message=FALSE, echo=FALSE, warning=FALSE}
 library(data.table)
 library(tidyverse)
 library(dplyr)
