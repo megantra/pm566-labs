@@ -1,0 +1,125 @@
+---
+title: "Lab 11 - Interactive Visualization"
+date: "11/11/2022"
+output: html_document
+link-citations: yes
+editor_options: 
+  chunk_output_type: console
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(repos = c(CRAN = "http://cran.rstudio.com"))
+```
+
+```{r libraries, message=FALSE, echo=FALSE, warning=FALSE}
+library(data.table)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(knitr)
+library(widgetframe)
+
+opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  eval=TRUE,
+  echo = TRUE,
+  cache=FALSE,
+  include=TRUE,
+  fig.width = 7, 
+  fig.align = 'center',
+  fig.asp = 0.618,
+  out.width = "700px")
+```
+
+
+# Learning Goals
+Read in and process the COVID dataset from the New York Times GitHub repository
+Create interactive graphs of different types using plot_ly() and ggplotly() functions
+Customize the hoverinfo and other plot features
+Create a Choropleth map using plot_geo()
+
+
+# Lab Description
+We will work with COVID data downloaded from the New York Times. The dataset consists of COVID-19 cases and deaths in each US state during the course of the COVID epidemic.
+
+**The objective of this lab is to explore relationships between cases, deaths, and population sizes of US states, and plot data to demonstrate this
+
+# Steps
+
+## I. Reading and processing the New York Times (NYT) state-level COVID-19 data
+
+### 1. Read in the data
+- Read in the COVID data with data.table:fread() from the NYT GitHub repository: “https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv”
+- Read in the state population data with data.table:fread() from the repository: “https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv””
+- Merge datasets
+
+```{r, echo=TRUE, message=FALSE}
+## data extracted from New York Times state-level data from NYT Github repository
+# https://github.com/nytimes/covid-19-data
+## state-level population information from us_census_data available on GitHub repository:
+# https://github.com/COVID19Tracking/associated-data/tree/master/us_census_data
+### FINISH THE CODE HERE ###
+# load COVID state-level data from NYT
+cv_states <- as.data.frame(data.table::fread("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"))
+### FINISH THE CODE HERE ###
+# load state population data
+state_pops <- as.data.frame(data.table::fread("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv"))
+state_pops$abb <- state_pops$state
+state_pops$state <- state_pops$state_name
+state_pops$state_name <- NULL
+### FINISH THE CODE HERE
+cv_states <- merge(cv_states, state_pops, by="state")
+```
+
+
+### 2. Look at the data
+
+- Inspect the dimensions, `head`, and `tail` of the data
+- Inspect the structure of each variables. Are they in the correct format?
+
+```{r}
+dim(cv_states)
+head(cv_states)
+tail(cv_states)
+str(cv_states)
+```
+
+### 3. Format the data
+
+- Make date into a date variable
+- Make state into a factor variable
+- Order the data first by state, second by date
+- Confirm the variables are now correctly formatted
+- Inspect the range values for each variable. What is the date range? The range of cases and deaths?
+
+```{r}
+# format the date
+cv_states$date <- as.Date(cv_states$date, format="%Y-%m-%d")
+# format the state and state abbreviation (abb) variables
+state_list <- unique(cv_states$state)
+cv_states$state <- factor(cv_states$state, levels = state_list)
+abb_list <- unique(cv_states$abb)
+cv_states$abb <- factor(cv_states$abb, levels = abb_list)
+### FINISH THE CODE HERE 
+# order the data first by state, second by date
+cv_states = cv_states[order(cv_states$state, cv_states$date),]
+# Confirm the variables are now correctly formatted
+str(cv_states)
+head(cv_states)
+tail(cv_states)
+# Inspect the range values for each variable. What is the date range? The range of cases and deaths?
+head(cv_states)
+summary(cv_states)
+min(cv_states$date)
+max(cv_states$date)
+```
+
+
+
+
+
+
+
